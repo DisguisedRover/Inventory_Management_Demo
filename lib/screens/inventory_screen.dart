@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:demo/screens/order_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -80,6 +79,16 @@ class _InventoryScreenState extends State<InventoryScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Inventory'),
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade700, Colors.blue.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
           actions: [
             IconButton(
               icon: Icon(Icons.add),
@@ -148,43 +157,40 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             direction: DismissDirection.endToStart,
                             confirmDismiss: (direction) =>
                                 _confirmDelete(context, item.id),
-                            child: ListTile(
-                              title: Text(item.title),
-                              subtitle: Text(
-                                  'Price: Rs.${item.price} - Quantity: ${item.quantity}'),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.edit),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BlocProvider.value(
-                                            value: _inventoryBloc,
-                                            child: InventoryManagementScreen(
-                                              item: item,
+                            child: Card(
+                              margin: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListTile(
+                                title: Text(item.title),
+                                subtitle: Text(
+                                    'Price: Rs.${item.price} - Quantity: ${item.quantity}'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.edit),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => BlocProvider.value(
+                                              value: _inventoryBloc,
+                                              child: InventoryManagementScreen(
+                                                item: item,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: item.quantity > 0
-                                        ? () => Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => OrderFormScreen(
-                                                  item: item,
-                                                ),
-                                              ),
-                                            )
-                                        : null,
-                                    child: Text('Order'),
-                                  ),
-                                ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );

@@ -86,39 +86,23 @@ class _ShopScreenState extends State<ShopScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Shop'),
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade700, Colors.blue.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
           actions: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.shopping_cart),
-                  onPressed: _proceedToCheckout,
-                ),
-                if (_cart.isNotEmpty)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        '${_cart.length}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
+            IconButton(
+              icon: Hero(
+                tag: 'cart',
+                child: Icon(Icons.shopping_cart),
+              ),
+              onPressed: _proceedToCheckout,
             ),
           ],
         ),
@@ -127,16 +111,32 @@ class _ShopScreenState extends State<ShopScreen> {
             if (_cart.isNotEmpty)
               Container(
                 padding: EdgeInsets.all(16),
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Cart Total: Rs.${_cartTotal.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     ElevatedButton(
                       onPressed: _proceedToCheckout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       child: Text('Checkout'),
                     ),
                   ],
@@ -151,100 +151,98 @@ class _ShopScreenState extends State<ShopScreen> {
                     if (state.items.isEmpty) {
                       return Center(child: Text('No items available'));
                     }
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        _inventoryBloc.add(LoadInventory());
-                      },
-                      child: ListView.builder(
-                        itemCount: state.items.length,
-                        itemBuilder: (context, index) {
-                          final item = state.items[index];
-                          final cartItem = _cart[item.id];
-                          return Card(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.title,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium,
+                    return ListView.builder(
+                      itemCount: state.items.length,
+                      itemBuilder: (context, index) {
+                        final item = state.items[index];
+                        final cartItem = _cart[item.id];
+                        return Card(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.title,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          'Rs.${item.price.toStringAsFixed(2)}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall!
-                                              .copyWith(
-                                                color: Theme.of(context)
-                                                    .primaryColor,
-                                              ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Rs.${item.price.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          color: Colors.blue.shade700,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        Text(
-                                          'In Stock: ${item.quantity}',
-                                          style: TextStyle(
-                                            color: item.quantity > 0
-                                                ? Colors.green
-                                                : Colors.red,
-                                          ),
+                                      ),
+                                      Text(
+                                        'In Stock: ${item.quantity}',
+                                        style: TextStyle(
+                                          color: item.quantity > 0
+                                              ? Colors.green
+                                              : Colors.red,
                                         ),
-                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (item.quantity > 0) ...[
+                                  IconButton(
+                                    icon: Icon(Icons.remove),
+                                    onPressed: cartItem?.quantity == null ||
+                                            cartItem!.quantity <= 0
+                                        ? null
+                                        : () => _updateCart(
+                                            item, (cartItem.quantity - 1)),
+                                  ),
+                                  SizedBox(
+                                    width: 40,
+                                    child: Text(
+                                      '${cartItem?.quantity ?? 0}',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                  if (item.quantity > 0) ...[
-                                    IconButton(
-                                      icon: Icon(Icons.remove),
-                                      onPressed: cartItem?.quantity == null ||
-                                              cartItem!.quantity <= 0
-                                          ? null
-                                          : () => _updateCart(
-                                              item, (cartItem.quantity - 1)),
+                                  IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed:
+                                        cartItem?.quantity == item.quantity
+                                            ? null
+                                            : () => _updateCart(item,
+                                                (cartItem?.quantity ?? 0) + 1),
+                                  ),
+                                ] else
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16,
                                     ),
-                                    SizedBox(
-                                      width: 40,
-                                      child: Text(
-                                        '${cartItem?.quantity ?? 0}',
-                                        textAlign: TextAlign.center,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
-                                      ),
+                                    child: Text(
+                                      'Out of Stock',
+                                      style: TextStyle(color: Colors.red),
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.add),
-                                      onPressed: cartItem?.quantity ==
-                                              item.quantity
-                                          ? null
-                                          : () => _updateCart(item,
-                                              (cartItem?.quantity ?? 0) + 1),
-                                    ),
-                                  ] else
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      child: Text(
-                                        'Out of Stock',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                ],
-                              ),
+                                  ),
+                              ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     );
                   } else if (state is InventoryError) {
                     return Center(child: Text(state.message));

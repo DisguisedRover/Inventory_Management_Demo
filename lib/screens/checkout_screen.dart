@@ -96,7 +96,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Checkout')),
+      appBar: AppBar(
+        title: Text('Checkout'),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade700, Colors.blue.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16),
@@ -106,6 +118,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: Column(
@@ -113,7 +129,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         Text(
                           'Order Summary',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         SizedBox(height: 16),
                         ...widget.cartItems.map((cartItem) => Padding(
@@ -129,8 +148,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ),
                                   Text(
                                     'Rs.${(cartItem.item.price * cartItem.quantity).toStringAsFixed(2)}',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -141,17 +161,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Text(
                               'Total:',
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Text(
                               'Rs.${_orderTotal.toStringAsFixed(2)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium!
-                                  .copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
                             ),
                           ],
                         ),
@@ -162,40 +183,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 SizedBox(height: 24),
                 Text(
                   'Delivery Information',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 16),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    border: OutlineInputBorder(),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'Please enter your name' : null,
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _contactController,
-                  decoration: InputDecoration(
-                    labelText: 'Contact Number',
-                    border: OutlineInputBorder(),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            labelText: 'Full Name',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            prefixIcon: Icon(Icons.person),
+                          ),
+                          validator: (value) => value?.isEmpty ?? true
+                              ? 'Please enter your name'
+                              : null,
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _contactController,
+                          decoration: InputDecoration(
+                            labelText: 'Contact Number',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            prefixIcon: Icon(Icons.phone),
+                          ),
+                          validator: (value) => value?.isEmpty ?? true
+                              ? 'Please enter your contact'
+                              : null,
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _addressController,
+                          decoration: InputDecoration(
+                            labelText: 'Delivery Address',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            prefixIcon: Icon(Icons.location_on),
+                          ),
+                          maxLines: 3,
+                          validator: (value) => value?.isEmpty ?? true
+                              ? 'Please enter your address'
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
-                  validator: (value) => value?.isEmpty ?? true
-                      ? 'Please enter your contact'
-                      : null,
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    labelText: 'Delivery Address',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                  validator: (value) => value?.isEmpty ?? true
-                      ? 'Please enter your address'
-                      : null,
                 ),
                 SizedBox(height: 24),
                 ElevatedButton(
@@ -203,6 +250,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       _isProcessing ? null : () => _processOrder(context),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: Colors.blue.shade700,
                   ),
                   child: _isProcessing
                       ? Row(
@@ -238,7 +289,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     'Please wait while we process your order...',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: Colors.blue.shade700,
                     ),
                   ),
                 ],
