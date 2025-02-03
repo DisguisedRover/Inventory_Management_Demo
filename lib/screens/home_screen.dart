@@ -1,4 +1,6 @@
-// home_page.dart
+import 'package:demo/screens/inventory_screen.dart';
+import 'package:demo/screens/order_screen.dart';
+import 'package:demo/screens/shop_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -8,7 +10,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inventory & Orders Dashboard'),
+        title: const Text('Inventory & Orders Dashboard'),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -25,61 +27,72 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Welcome Message
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome to Inventory Management Demo',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+            TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 800),
+              builder: (context, double value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 20 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Welcome to Inventory Management Demo',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Manage your inventory, track orders, and shop seamlessly.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Manage your inventory, track orders, and shop seamlessly.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 24),
-            // Navigation Cards
+            const SizedBox(height: 24),
             Expanded(
               child: GridView(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Two columns
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
                 children: [
-                  _buildNavigationCard(
+                  _buildAnimatedNavigationCard(
                     context,
                     title: 'Inventory',
                     icon: Icons.inventory,
                     color: Colors.blue.shade400,
                     route: '/inventory',
                   ),
-                  _buildNavigationCard(
+                  _buildAnimatedNavigationCard(
                     context,
                     title: 'Orders',
                     icon: Icons.list_alt,
                     color: Colors.green.shade400,
                     route: '/orders',
                   ),
-                  _buildNavigationCard(
+                  _buildAnimatedNavigationCard(
                     context,
                     title: 'Shop Now',
                     icon: Icons.shopping_cart,
@@ -95,51 +108,109 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Helper method to build navigation cards
-  Widget _buildNavigationCard(
+  Widget _buildAnimatedNavigationCard(
     BuildContext context, {
     required String title,
     required IconData icon,
     required Color color,
     required String route,
   }) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.pushNamed(context, route);
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [color, color.withOpacity(0.7)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 200),
+      builder: (context, double value, child) {
+        return Transform.scale(
+          scale: 0.95 + (0.05 * value),
+          child: child,
+        );
+      },
+      child: MouseRegion(
+        onEnter: (_) {},
+        onExit: (_) {},
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          child: Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 48,
-                color: Colors.white,
-              ),
-              SizedBox(height: 16),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      // Replace these with your actual screen widgets
+                      Widget targetScreen;
+                      switch (route) {
+                        case '/inventory':
+                          targetScreen =
+                              const InventoryScreen(); // Replace with InventoryScreen
+                          break;
+                        case '/orders':
+                          targetScreen =
+                              const OrdersScreen(); // Replace with OrdersScreen
+                          break;
+                        case '/shop':
+                          targetScreen =
+                              const ShopScreen(); // Replace with ShopScreen
+                          break;
+                        default:
+                          targetScreen = const HomePage();
+                      }
+                      return targetScreen;
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
+                    },
+                    transitionDuration: const Duration(milliseconds: 300),
+                  ),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    colors: [color, color.withOpacity(0.7)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 200),
+                      builder: (context, double value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: child,
+                        );
+                      },
+                      child: Icon(
+                        icon,
+                        size: 48,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

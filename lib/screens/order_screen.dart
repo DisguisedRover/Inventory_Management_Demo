@@ -14,19 +14,38 @@ class OrdersScreen extends StatefulWidget {
   _OrderScreenState createState() => _OrderScreenState();
 }
 
-class _OrderScreenState extends State<OrdersScreen> {
+class _OrderScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
   late OrderBloc _orderBloc;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _orderBloc = OrderBloc(apiService: GetIt.I<ApiService>());
     _orderBloc.add(LoadOrders());
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _orderBloc.close();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -35,15 +54,18 @@ class _OrderScreenState extends State<OrdersScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Delete'),
-          content: Text('Are you sure you want to delete this order?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this order?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             TextButton(
-              child: Text(
+              child: const Text(
                 'Delete',
                 style: TextStyle(color: Colors.red),
               ),
@@ -78,62 +100,135 @@ class _OrderScreenState extends State<OrdersScreen> {
             ),
           ),
         ),
-        body: BlocBuilder<OrderBloc, OrderState>(
-          builder: (context, state) {
-            if (state is OrderLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is OrdersLoaded) {
-              return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<OrderBloc>().add(LoadOrders());
-                },
-                child: ListView.builder(
-                  itemCount: state.orders.length,
-                  itemBuilder: (context, index) {
-                    final order = state.orders[index];
-                    return Dismissible(
-                      key: Key(order.id.toString()),
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: EdgeInsets.only(right: 16),
-                        child: Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                        ),
-                      ),
-                      direction: DismissDirection.endToStart,
-                      confirmDismiss: (direction) =>
-                          _confirmDelete(context, order.id),
-                      child: Card(
-                        margin: const EdgeInsets.all(8.0),
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          title: Text('Order #${order.id.toString()}'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Item: ${order.title}'),
-                              Text('Customer: ${order.name}'),
-                              Text('Contact: ${order.contact}'),
-                              Text('Address: ${order.address}'),
-                              Text('Price: Rs.${order.price.toString()}'),
-                            ],
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: BlocBuilder<OrderBloc, OrderState>(
+            builder: (context, state) {
+              if (state is OrderLoading) {
+                return Center(
+                  child: TweenAnimationBuilder(
+                    tween: Tween<double>(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 500),
+                    builder: (context, double value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: const CircularProgressIndicator(),
+                      );
+                    },
+                  ),
+                );
+              } else if (state is OrdersLoaded) {
+                if (state.orders.isEmpty) {
+                  return Center(
+                    child: TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 300),
+                      builder: (context, double value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: const Text('No orders found'),
+                        );
+                      },
+                    ),
+                  );
+                }
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<OrderBloc>().add(LoadOrders());
+                  },
+                  child: ListView.builder(
+                    itemCount: state.orders.length,
+                    itemBuilder: (context, index) {
+                      final order = state.orders[index];
+                      return TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                        duration: Duration(milliseconds: 300 + (index * 50)),
+                        builder: (context, double value, child) {
+                          return Transform.translate(
+                            offset: Offset(0, 50 * (1 - value)),
+                            child: Opacity(
+                              opacity: value,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Dismissible(
+                          key: Key(order.id.toString()),
+                          background: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade400,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 16),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                          direction: DismissDirection.endToStart,
+                          confirmDismiss: (direction) =>
+                              _confirmDelete(context, order.id),
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              title: Text(
+                                'Order #${order.id}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Item: ${order.title}'),
+                                  Text('Customer: ${order.name}'),
+                                  Text('Contact: ${order.contact}'),
+                                  Text('Address: ${order.address}'),
+                                  Text(
+                                    'Price: Rs.${order.price}',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            } else if (state is OrderError) {
-              return Center(child: Text(state.message));
-            }
-            return const Center(child: Text('Something went wrong'));
-          },
+                      );
+                    },
+                  ),
+                );
+              } else if (state is OrderError) {
+                return Center(
+                  child: TweenAnimationBuilder(
+                    tween: Tween<double>(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 300),
+                    builder: (context, double value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Text(state.message),
+                      );
+                    },
+                  ),
+                );
+              }
+              return const Center(child: Text('Something went wrong'));
+            },
+          ),
         ),
       ),
     );

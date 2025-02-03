@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -17,16 +16,34 @@ class InventoryScreen extends StatefulWidget {
   _InventoryScreenState createState() => _InventoryScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> {
+class _InventoryScreenState extends State<InventoryScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   late InventoryBloc _inventoryBloc;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _inventoryBloc = InventoryBloc(apiService: GetIt.I<ApiService>());
     _inventoryBloc.add(LoadInventory());
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.forward();
   }
 
   @override
@@ -34,6 +51,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     _searchController.dispose();
     _debounce?.cancel();
     _inventoryBloc.close();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -49,15 +67,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Delete'),
-          content: Text('Are you sure you want to delete this item?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this item?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             TextButton(
-              child: Text(
+              child: const Text(
                 'Delete',
                 style: TextStyle(color: Colors.red),
               ),
@@ -78,7 +99,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       value: _inventoryBloc,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Inventory'),
+          title: const Text('Inventory'),
           elevation: 0,
           flexibleSpace: Container(
             decoration: BoxDecoration(
@@ -90,48 +111,88 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           ),
           actions: [
-            IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: _inventoryBloc,
-                      child: InventoryManagementScreen(),
-                    ),
-                  ),
+            TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 300),
+              builder: (context, double value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: child,
                 );
               },
+              child: IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          BlocProvider.value(
+                        value: _inventoryBloc,
+                        child: const InventoryManagementScreen(),
+                      ),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search inventory...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search inventory...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(color: Colors.blue.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide:
+                          BorderSide(color: Colors.blue.shade400, width: 2),
+                    ),
+                    filled: true,
+                    fillColor: Colors.blue.shade50,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  onChanged: _onSearchChanged,
                 ),
-                onChanged: _onSearchChanged,
               ),
             ),
             Expanded(
               child: BlocBuilder<InventoryBloc, InventoryState>(
                 builder: (context, state) {
                   if (state is InventoryLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(
+                      child: TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 500),
+                        builder: (context, double value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: const CircularProgressIndicator(),
+                          );
+                        },
+                      ),
+                    );
                   } else if (state is InventoryLoaded) {
                     if (state.items.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: Text('No items found'),
                       );
                     }
@@ -143,53 +204,96 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         itemCount: state.items.length,
                         itemBuilder: (context, index) {
                           final item = state.items[index];
-                          return Dismissible(
-                            key: Key(item.id.toString()),
-                            background: Container(
-                              color: Colors.red,
-                              alignment: Alignment.centerRight,
-                              padding: EdgeInsets.only(right: 16),
-                              child: Icon(
-                                Icons.delete,
-                                color: Colors.white,
+                          return TweenAnimationBuilder(
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            duration:
+                                Duration(milliseconds: 300 + (index * 50)),
+                            builder: (context, double value, child) {
+                              return Transform.translate(
+                                offset: Offset(0, 50 * (1 - value)),
+                                child: Opacity(
+                                  opacity: value,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Dismissible(
+                              key: Key(item.id.toString()),
+                              background: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade400,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 16),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            direction: DismissDirection.endToStart,
-                            confirmDismiss: (direction) =>
-                                _confirmDelete(context, item.id),
-                            child: Card(
-                              margin: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: ListTile(
-                                title: Text(item.title),
-                                subtitle: Text(
-                                    'Price: Rs.${item.price} - Quantity: ${item.quantity}'),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.edit),
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => BlocProvider.value(
-                                              value: _inventoryBloc,
-                                              child: InventoryManagementScreen(
-                                                item: item,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (direction) =>
+                                  _confirmDelete(context, item.id),
+                              child: Card(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                elevation: 3,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  title: Text(
+                                    item.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ],
+                                  ),
+                                  subtitle: Text(
+                                    'Price: Rs.${item.price} - Quantity: ${item.quantity}',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit),
+                                        color: Colors.blue.shade400,
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            PageRouteBuilder(
+                                              pageBuilder: (context, animation,
+                                                      secondaryAnimation) =>
+                                                  BlocProvider.value(
+                                                value: _inventoryBloc,
+                                                child:
+                                                    InventoryManagementScreen(
+                                                  item: item,
+                                                ),
+                                              ),
+                                              transitionsBuilder: (context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                  child) {
+                                                return FadeTransition(
+                                                  opacity: animation,
+                                                  child: child,
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -200,7 +304,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   } else if (state is InventoryError) {
                     return Center(child: Text(state.message));
                   }
-                  return Center(child: Text('Something went wrong'));
+                  return const Center(child: Text('Something went wrong'));
                 },
               ),
             ),
