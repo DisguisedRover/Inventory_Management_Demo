@@ -1,3 +1,4 @@
+import 'package:demo/models/order.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../services/api_service.dart';
@@ -29,6 +30,17 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         );
         emit(OrderCreated());
         add(LoadOrders());
+      } catch (e) {
+        emit(OrderError(e.toString()));
+      }
+    });
+
+    on<DeleteOrder>((event, emit) async {
+      emit(OrderLoading());
+      try {
+        await apiService.deleteOrder(event.id);
+        final items = await apiService.getOrders();
+        emit(OrdersLoaded(items.cast<Order>()));
       } catch (e) {
         emit(OrderError(e.toString()));
       }

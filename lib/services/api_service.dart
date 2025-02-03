@@ -101,8 +101,7 @@ class ApiService {
       int itemId, String name, String contact, String address) async {
     try {
       final response = await http.post(
-        Uri.parse(
-            '$baseurl/orderReceive'), // Note: Changed from /order to /orders to match backend
+        Uri.parse('$baseurl/orderReceive'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -131,6 +130,22 @@ class ApiService {
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<void> deleteOrder(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseurl/orderReceive/$id'),
+        headers: {
+          'Accept': 'application/json',
+        },
+      );
+
+      _checkResponse(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Failed to connect to server: ${e.toString()}');
     }
   }
 

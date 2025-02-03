@@ -1,12 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-abstract class OrderEvent extends Equatable {
-  @override
-  List<Object> get props => [];
-}
-
-class LoadOrders extends OrderEvent {}
-
 class CreateOrder extends OrderEvent {
   final int itemId;
   final String name;
@@ -23,3 +16,15 @@ class CreateOrder extends OrderEvent {
   @override
   List<Object> get props => [itemId, name, contact, address];
 }
+
+class DeleteOrder extends OrderEvent {
+  final int id;
+  DeleteOrder(this.id);
+}
+
+abstract class OrderEvent extends Equatable {
+  @override
+  List<Object> get props => [];
+}
+
+class LoadOrders extends OrderEvent {}
