@@ -140,20 +140,16 @@ class HomePage extends StatelessWidget {
                 Navigator.of(context).push(
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) {
-                      // Replace these with your actual screen widgets
                       Widget targetScreen;
                       switch (route) {
                         case '/inventory':
-                          targetScreen =
-                              const InventoryScreen(); // Replace with InventoryScreen
+                          targetScreen = const InventoryScreen();
                           break;
                         case '/orders':
-                          targetScreen =
-                              const OrdersScreen(); // Replace with OrdersScreen
+                          targetScreen = const OrdersScreen();
                           break;
                         case '/shop':
-                          targetScreen =
-                              const ShopScreen(); // Replace with ShopScreen
+                          targetScreen = const ShopScreen();
                           break;
                         default:
                           targetScreen = const HomePage();
