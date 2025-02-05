@@ -1,4 +1,4 @@
-import 'package:demo/models/order.dart';
+import 'package:InventoryManagement/models/order.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../services/api_service.dart';

@@ -1,4 +1,4 @@
-# demo
+# InventoryManagement
 
 A new Flutter project.
 

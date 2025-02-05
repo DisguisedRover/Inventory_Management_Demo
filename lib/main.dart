@@ -1,4 +1,4 @@
-import 'package:demo/screens/home_screen.dart';
+import 'package:InventoryManagement/screens/home_screen.dart';
 
 import '../screens/shop_screen.dart';
 import '../services/api_service.dart';

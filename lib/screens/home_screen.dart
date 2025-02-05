@@ -1,6 +1,6 @@
-import 'package:demo/screens/inventory_screen.dart';
-import 'package:demo/screens/order_screen.dart';
-import 'package:demo/screens/shop_screen.dart';
+import 'package:InventoryManagement/screens/inventory_screen.dart';
+import 'package:InventoryManagement/screens/order_screen.dart';
+import 'package:InventoryManagement/screens/shop_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
