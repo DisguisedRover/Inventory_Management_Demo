@@ -135,21 +135,58 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                         SizedBox(height: 16),
+                        // Column Headers
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Item',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 50,
+                              child: Text(
+                                'Qty',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 80,
+                              child: Text(
+                                'Price',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(),
+                        // Items
                         ...widget.cartItems.map((cartItem) => Padding(
                               padding: EdgeInsets.symmetric(vertical: 4),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
+                                    flex: 3,
+                                    child: Text(cartItem.item.title),
+                                  ),
+                                  SizedBox(
+                                    width: 50,
                                     child: Text(
-                                      '${cartItem.item.title} x${cartItem.quantity}',
+                                      'x${cartItem.quantity}',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  Text(
-                                    'Rs.${(cartItem.item.price * cartItem.quantity).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  SizedBox(
+                                    width: 80,
+                                    child: Text(
+                                      'Rs.${(cartItem.item.price * cartItem.quantity).toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.right,
                                     ),
                                   ),
                                 ],
